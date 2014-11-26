@@ -9,6 +9,11 @@
         <h1>Welcome to BootUp!</h1>
 	    {{=user_controls}}
     </header>
+    {{if response.flash:}}
+        <div id="message_box" style="color:red;">
+            {{=response.flash}}
+        </div>
+    {{pass}}
     {{include}}
 </body>
 </html>

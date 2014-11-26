@@ -1,14 +1,11 @@
 __author__ = 'Y8186314'
 from datetime import date
-from applications.BootUp.modules.header import *
 
 def index():
     """
     5 most recently created projects (by ID)
     5 projects closest to their goal (heavy calculation to sum all pledges, consider revising.)
     """
-    objects = init_header()
-
     # Get the 5 newest (by incremental ID) available projects
     visible = db(db.bootables.status != 'NOT_AVAILABLE')
     newest = visible.select(limitby=((visible.count() - 5), visible.count()))
@@ -20,9 +17,7 @@ def index():
                  & (db.pledges.id == db.pledged.pledge_ref))\
         .select(totals, groupby=db.bootables.id, orderby=~totals)
 
-    objects['pledged'] = closest
-
-    return objects
+    return dict(pledged=closest, user_controls=user_controls)
 
 
 def signup():
@@ -31,7 +26,12 @@ def signup():
     UID, name, dob, complete address (street addr, city, country, post),
             credit card (ID, expiry, PIN, address)
     """
-    init_header()
+    # If signed in at any point, clear session and redirect to home
+    if 'curr_user_id' in request.cookies:
+        session.signup = dict()
+        session.flash = \
+            "Looks like you're already signed in! If you wish to create another account, please sign out first."
+        redirect(URL('index'))
 
     # Break the form down into chunks to reduce visual load, don't start personal info until after username
     if (request.args(0) == '1') and 'username' in session.signup:
@@ -64,8 +64,8 @@ def signup():
                         DIV(LABEL('Post Code', _for='postcode'),
                             INPUT(_name='postcode', requires=IS_MATCH('^\w{4} \w{3}$'),
                                   _value=session.signup['address.postcode'] if 'address.postcode' in session.signup else ''))),
-                    DIV(INPUT(_type='submit', _value='Next')))\
-                    .add_button('Prev', URL('signup', args=(session.current_page - 1)))
+                    DIV(INPUT(_type='submit', _value='Next')))
+        form.add_button('Prev', URL('signup', args=(session.current_page - 1)))
 
     # Finish up with credit information if personal details are complete
     elif (request.args(0) == '2') and 'address.postcode' in session.signup:
@@ -97,8 +97,8 @@ def signup():
                         DIV(LABEL('Post Code', _for='bill_postcode'),
                             INPUT(_name='bill_postcode', requires=IS_MATCH('^\w{4} \w{3}$'),
                                   _value=session.signup['address.postcode'], _readonly='true'))),
-                    DIV(INPUT(_type='submit', _value='Submit')))\
-                    .add_button('Prev', URL('signup', args=(session.current_page - 1)))
+                    DIV(INPUT(_type='submit', _value='Submit')))
+        form.add_button('Prev', URL('signup', args=(session.current_page - 1)))
 
     # If the page hasn't been accessed in this session, start afresh
     else:
@@ -114,8 +114,8 @@ def signup():
                     DIV(LABEL('Confirm Password', _for='confirm_pwd'),
                         INPUT(_name='confirm_pwd', _type='password', requires=IS_EQUAL_TO(request.vars.password),
                               _value=session.signup['password'] if 'password' in session.signup else '')),
-                    DIV(INPUT(_type='submit', _value='Next')))\
-                    .add_button('Cancel', URL('index'))
+                    DIV(INPUT(_type='submit', _value='Next')))
+        form.add_button('Cancel', URL('index'))
 
     # On receiving a valid form response
     if form.accepts(request, session):
@@ -188,8 +188,6 @@ def view_profile():
     """
     Edit any aspect of the user, addresses or credit sections
     """
-    init_header()
-
     profile = db((db.users.address_ref == db.address.id)
                  & (db.users.credit_ref == db.credit.id)
                  & (db.credit.address_ref == db.address.id))
@@ -200,8 +198,6 @@ def new_boot():
     """
     Form for creating bootable. Must be logged in first.
     """
-    init_header()
-
     return dict()
 
 
@@ -210,8 +206,6 @@ def boot_cupboard():
     'Your dashboard'?
     Overview projects, change status, delete (if not open), go to edit
     """
-    init_header()
-
     return dict()
 
 
@@ -219,8 +213,6 @@ def edit_boot():
     """
     Edit boots
     """
-    init_header()
-
     return dict()
 
 
@@ -230,6 +222,12 @@ def view_boot():
             current contributions (username, amount, expected reward) [group by pledge in hovering window?],
             current pledged amount, all normal bootable information.
     """
-    init_header()
+    return dict()
 
+
+def search():
+    """
+    Page for showing search results in a list.
+    First argument sets which 10 results to display if result set is larger.
+    """
     return dict()

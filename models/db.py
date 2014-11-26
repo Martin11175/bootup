@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Y8186314'
-from gluon import DAL, Field
+from gluon.custom_import import track_changes
+track_changes(True)
+from gluon import DAL, Field, current
 
 db = DAL('sqlite://bootup.db')
+current.db = db  # Reference to allow common modules access to db
 db.define_table('address',
                 Field('number', 'string', required=True, notnull=True),
                 Field('street', 'string', required=True, notnull=True),
