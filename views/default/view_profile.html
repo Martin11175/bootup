@@ -1,0 +1,39 @@
+{{extend 'layout.html'}}
+<H3>{{=username}}</H3>
+<div>
+    <label>Real name: </label>
+    <span>{{=(firstname + ' ' + lastname)}}</span>
+</div>
+<div>
+    <label>Date of Birth: </label>
+    <span>{{=dob}}</span>
+</div>
+<div>
+    <H4>Address</H4>
+    <span>{{=(address.house + ', ' + address.street + ',')}}</span>
+    <span>{{=(address.city + ',')}}</span>
+    <span>{{=(address.country + ',')}}</span>
+    <span>{{=address.postcode}}</span>
+</div>
+<div>
+    <H4>Credit information</H4>
+    <div>
+        <label>Card number: </label>
+        <span>{{=credit.number}}</span>
+    </div>
+    <div>
+        <label>Expiry Date: </label>
+        <span>{{=credit.expiry}}</span>
+    </div>
+    <div>
+        <label>Security PIN: </label>
+        <span>{{=credit.pin}}</span>
+    </div>
+    <div>
+        <H5>Billing Address</H5>
+        <span>{{=(credit.address.house + ', ' + credit.address.street + ',')}}</span>
+        <span>{{=(credit.address.city + ',')}}</span>
+        <span>{{=(credit.address.country + ',')}}</span>
+        <span>{{=credit.address.postcode}}</span>
+    </div>
+</div>

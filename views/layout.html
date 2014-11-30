@@ -2,11 +2,18 @@
 <head>
     <title>BootUp!</title>
     <meta charset="utf-8" />
+    {{
+    response.files.insert(0, URL('static', 'css/global.css'))
+    response.files.insert(1, URL('static', 'js/jquery.js'))
+    response.include_meta()
+    response.include_files()
+    }}
 </head>
 
 <body>
     <header>
         <h1>Welcome to BootUp!</h1>
+	    {{=search}}
 	    {{=user_controls}}
     </header>
     {{if response.flash:}}
@@ -14,7 +21,54 @@
             {{=response.flash}}
         </div>
     {{pass}}
-    {{include}}
+    <div id="main">
+        {{include}}
+    </div>
 </body>
+
+<!-- Deferred header scripting -->
+<script>
+	function login() {
+        var login_user = $("#login_username").val();
+        var login_pwd = $("#login_password").val();
+
+        window.location.replace('{{=URL('login')}}?login_user=' + login_user + '&login_pwd=' + login_pwd);
+	}
+    $("#login_button").click(function() {
+	    login();
+    });
+    $("#login_username").keypress(function(key) {
+        if(key.which == 13) { // If enter pressed in search
+	        $("#login_password").focus();
+        }
+    });
+    $("#login_password").keypress(function(key) {
+        if(key.which == 13) { // If enter pressed in search
+            login();
+        }
+    });
+
+
+	function search() {
+		var search_string = $("#search").val();
+		var split = search_string.indexOf('@');
+		if (split != -1) {
+            var query = search_string.substring(0, split).trim();
+            var category = search_string.substring(split + 1, search_string.length).trim();
+            window.location.replace('{{=URL('search')}}?query=' + query + '&category=' + category);
+        } else {
+            window.location.replace('{{=URL('search')}}?query=' + search_string);
+		}
+
+	}
+	$("#search_button").click(function() {
+		search();
+	});
+    $("#search").keypress(function(key) {
+	    if(key.which == 13) { // If enter pressed in search
+		    search();
+	    }
+    })
+</script>
 </html>
 

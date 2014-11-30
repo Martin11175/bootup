@@ -1,0 +1,18 @@
+/* True beauty isn't based on looks alone */
+body {
+    width: 100%;
+}
+
+/* Make all the things that act like buttons, look like buttons! */
+a.button, a.button:visited {
+    border: 2px outset buttonface;
+    padding: 1px 6px;
+
+    font-size: 10pt;
+    font: -webkit-small-control;
+    color: buttontext;
+    text-decoration: none;
+
+    -webkit-appearance: push-button;
+    cursor: default;
+}

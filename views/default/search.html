@@ -1,0 +1,12 @@
+{{extend 'layout.html'}}
+<H2>Results for: </H2>
+<span>{{=search_string}}</span>
+{{for bootable in result:}}
+    <div>
+	    <H3>{{=bootable.title}}</H3>
+	    <H4>{{=bootable.owner}}</H4>
+	    <span>{{=('@' + bootable.category)}}</span>
+	    <span>{{=bootable.intro}}</span>
+        <span>{{=bootable.total}} out of {{=bootable.goal}}</span>
+    </div>
+{{pass}}

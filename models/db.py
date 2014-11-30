@@ -14,7 +14,8 @@ db.define_table('address',
                 Field('postcode', 'string', required=True, notnull=True))
 db.define_table('credit',
                 Field('number', 'integer', required=True, notnull=True),
-                Field('expiry', 'date', required=True, notnull=True),
+                # String to avoid internal crashes on retrieval due to lack of day field
+                Field('expiry', 'string', required=True, notnull=True),
                 Field('PIN', 'integer', required=True, notnull=True),
                 Field('address_ref', 'reference address', required=True, notnull=True))
 db.define_table('users',
@@ -32,8 +33,8 @@ db.define_table('bootables',
                 Field('intro', 'text', required=True, notnull=True),
                 Field('category_ref', 'reference categories', required=True, notnull=True),
                 Field('goal', 'integer', required=True, notnull=True),
-                Field('image', 'upload', uploadfield='image_file', required=True, notnull=True),
-                Field('image_file', 'blob', required=True, notnull=True),
+                # Removed images. Couldn't get to work with blob, internal python errors with storing in session.
+                # Field('image', 'upload', required=True, notnull=True),
                 Field('desc', 'text', required=True, notnull=True),
                 Field('about_us', 'text', required=True, notnull=True),
                 Field('status', 'string', required=True, notnull=True, default='NOT_AVAILABLE'),
