@@ -1,0 +1,25 @@
+{{extend 'layout.html'}}
+{{for bootable in bootables:}}
+    <div>
+        <H3>{{=bootable.title}}</H3>
+        <H4>{{=bootable.owner}}</H4>
+        <span>{{=('@' + bootable.category)}}</span>
+        <span>{{=bootable.intro}}</span>
+        <span>{{=bootable.total}} out of {{=bootable.goal}}</span>
+	    <b>{{=bootable.status}}</b>
+	    <a href="{{=URL('edit_boot', args=bootable.id)}}">Edit bootable</a>
+        <a href="{{=URL('edit_pledges', args=bootable.id)}}">Edit pledges</a>
+	    {{if bootable.status == "Not Available to Public":}}
+            <a href="{{=URL('progress_boot', args=bootable.id)}}">Open to pledges</a>
+        {{elif bootable.status == "Open for pledges!":}}
+            <a href="{{=URL('progress_boot', args=bootable.id)}}">Close bootable</a>
+	    {{pass}}
+        <a href="{{=URL('delete_boot', args=bootable.id)}}">Delete bootable</a>
+    </div>
+{{pass}}
+{{if len(bootables) == 0:}}
+	<div>
+		Sorry, there doesn't appear to be anything here yet :( Why not
+		<a href="{{=URL('new_boot')}}">Create a bootable!</a>
+	</div>
+{{pass}}

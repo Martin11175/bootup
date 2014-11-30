@@ -1,2 +1,26 @@
 {{extend 'layout.html'}}
-{{=pledged}}
+<div>
+	<H2>Our community's newest ideas:</H2>
+    {{for bootable in newest:}}
+        <div>
+            <H3>{{=bootable.title}}</H3>
+            <H4>{{=bootable.owner}}</H4>
+            <span>{{=('@' + bootable.category)}}</span>
+            <span>{{=bootable.intro}}</span>
+            <span>{{=bootable.total}} out of {{=bootable.goal}}</span>
+        </div>
+    {{pass}}
+</div>
+<div>
+    <H2>Closest to their funding goals!</H2>
+    {{for bootable in newest:}}
+        <div>
+            <H3>{{=bootable.title}}</H3>
+            <H4>{{=bootable.owner}}</H4>
+            <span>{{=('@' + bootable.category)}}</span>
+            <span>{{=bootable.intro}}</span>
+            <span>{{=bootable.total}} out of {{=bootable.goal}}</span>
+        </div>
+    {{pass}}
+</div>
+

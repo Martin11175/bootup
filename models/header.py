@@ -18,7 +18,8 @@ CLOSED_NOT_FUNDED = 'CLOSED_NOT_FUNDED'
 if ('curr_user_id' in request.cookies) ^ ('curr_user_id' in response.cookies):
     username = db.users(request.cookies['curr_user_id'].value).username
     user_controls = DIV('Welcome ' + username,
-                        A('Logout', callback=URL('logout'), _class='button'))
+                        A('Logout', callback=URL('logout'), _class='button'),
+                        A('Your Dashboard', callback=URL('dashboard')))
 
 # Initial login / register controls
 else:

@@ -7,28 +7,51 @@ from datetime import date
 
 def index():
     """
-    5 most recently created projects (by ID)
-    5 projects closest to their goal (heavy calculation to sum all pledges, consider revising.)
+    5 most recently created projects (by ID).
+    5 projects closest to their goal.
+    :returns: 2 lists of bootable's information for display in their short forms.
     """
     # Get the 5 newest (by incremental ID) available projects
-    visible = db(db.bootables.status != NOT_AVAILABLE)
-    newest = visible.select(limitby=((visible.count() - 5), visible.count()))
+    newest = []
+    for db_bootable in db(db.bootables.status != NOT_AVAILABLE).select(orderby=~db.bootables.id, limitby=(0, 5)):
+        bootable = Storage()
+        bootable['title'] = db_bootable.title
+        bootable['category'] = db.categories[db_bootable.category_ref].name
+        bootable['owner'] = db.users[db_bootable.boot_manager].username
+        bootable['intro'] = db_bootable.intro
+        bootable['goal'] = db_bootable.goal
+        value_sum = db.pledges.value.sum()
+        bootable['total'] = db((db.pledges.boot_ref == db_bootable.id)
+                               & (db.pledged.pledge_ref == db.pledges.id)).select(value_sum).first()[value_sum]
+        newest.append(bootable)
 
     # Calculate distance to pledge goal for all open bootables and select top 5
     totals = db.pledges.value.sum()
-    closest = db((db.bootables.status == OPEN_FOR_PLEDGES)
-                 & (db.bootables.id == db.pledges.boot_ref)
-                 & (db.pledges.id == db.pledged.pledge_ref))\
-        .select(totals, groupby=db.bootables.id, orderby=~totals)
+    closest = []
+    for db_bootable in db((db.bootables.status == OPEN_FOR_PLEDGES)
+                          & (db.bootables.id == db.pledges.boot_ref)
+                          & (db.pledges.id == db.pledged.pledge_ref))\
+            .select(db.bootables.ALL, totals, groupby=db.bootables.id, orderby=~totals,
+                    having=((db.bootables.goal - totals) > 0), limitby=(0, 5)):
+        bootable = Storage()
+        bootable['title'] = db_bootable.title
+        bootable['category'] = db.categories[db_bootable.category_ref].name
+        bootable['owner'] = db.users[db_bootable.boot_manager].username
+        bootable['intro'] = db_bootable.intro
+        bootable['goal'] = db_bootable.goal
+        bootable['total'] = db_bootable[totals]
+        closest.append(bootable)
 
-    return dict(pledged=closest, user_controls=user_controls)
+    return dict(newest=newest, closest=closest)
 
 
 def signup():
     """
     Form for creating a new user. Requires:
-    UID, name, dob, complete address (street addr, city, country, post),
-            credit card (ID, expiry, PIN, address)
+    Username, password, name, dob, complete address (street addr, city, country, post),
+            credit card (number, expiry, PIN, address)
+    :returns: 3 Different forms depending on the user's progress through the signup process,
+            pre-populated if already completed and returned to later.
     """
     # If signed in at any point, clear session and redirect to home
     if 'curr_user_id' in request.cookies:
@@ -190,66 +213,84 @@ def view_profile():
     """
     Edit any aspect of the user, addresses or credit sections
     """
-    if request.args(0):
-        try:
-            user_id = int(request.args[0])
-        except ValueError:
-            session.flash = "Please specify the user you're looking for by their ID"
-            redirect(URL('index'))
+    # Only allow if user logged in
+    if not 'curr_user_id' in request.cookies:
+        session.flash = "Sorry, you need to be signed in to see your bootables!"
+        redirect(URL('index'))
 
-        db_profile = db(db.users.id == user_id
-                        & (db.users.address_ref == db.address.id)
-                        & (db.users.credit_ref == db.credit.id)).select().first()
-        if db_profile is not None:
-            credit_address = db.address[db_profile.credit.address_ref]
+    db_profile = db(db.users.id == request.cookies['curr_user_id'].value
+                    & (db.users.address_ref == db.address.id)
+                    & (db.users.credit_ref == db.credit.id)).select().first()
+    credit_address = db.address[db_profile.credit.address_ref]
 
-            profile = dict()
-            profile['firstname'] = db_profile.users.firstname
-            profile['lastname'] = db_profile.users.lastname
-            profile['username'] = db_profile.users.username
-            profile['dob'] = db_profile.users.dob
+    profile = dict()
+    profile['firstname'] = db_profile.users.firstname
+    profile['lastname'] = db_profile.users.lastname
+    profile['username'] = db_profile.users.username
+    profile['dob'] = db_profile.users.dob
 
-            address = Storage()
-            address['house'] = db_profile.address.number
-            address['street'] = db_profile.address.street
-            address['city'] = db_profile.address.city
-            address['country'] = db_profile.address.country
-            address['postcode'] = db_profile.address.postcode
-            profile['address'] = address
+    address = Storage()
+    address['house'] = db_profile.address.number
+    address['street'] = db_profile.address.street
+    address['city'] = db_profile.address.city
+    address['country'] = db_profile.address.country
+    address['postcode'] = db_profile.address.postcode
+    profile['address'] = address
 
-            credit = Storage()
-            credit['number'] = db_profile.credit.number
-            credit['expiry'] = db_profile.credit.expiry
-            credit['pin'] = db_profile.credit.PIN
-            cred_address = Storage()
-            cred_address['house'] = credit_address.number
-            cred_address['street'] = credit_address.street
-            cred_address['city'] = credit_address.city
-            cred_address['country'] = credit_address.country
-            cred_address['postcode'] = credit_address.postcode
-            credit['address'] = cred_address
-            profile['credit'] = credit
+    credit = Storage()
+    credit['number'] = db_profile.credit.number
+    credit['expiry'] = db_profile.credit.expiry
+    credit['pin'] = db_profile.credit.PIN
+    cred_address = Storage()
+    cred_address['house'] = credit_address.number
+    cred_address['street'] = credit_address.street
+    cred_address['city'] = credit_address.city
+    cred_address['country'] = credit_address.country
+    cred_address['postcode'] = credit_address.postcode
+    credit['address'] = cred_address
+    profile['credit'] = credit
 
-            # TODO: Bootables funding list
-            profile['pledges'] = []
-        else:
-            session.flash = "Sorry, we couldn't find the user you're looking for."
-            redirect(URL('view_profile'))
-
-    else:
-        session.flash = "Please specify the user you're looking for using their ID."
-        redirect(URL('view_profile'))
+    # TODO: Bootables funding list
+    profile['pledges'] = []
 
     return profile
 
 
-def boot_cupboard():
+def dashboard():
     """
-    'Your dashboard'?
-    Overview projects, change status, delete (if not open), go to edit
+    Shows users an overview of their bootables. Allows changing status, editing and deleting.
     Shown in sets of 10. First argument determines which set if > 10 boots.
+    :returns: A list of bootable's information for display in their short form with IDs and statuses for links.
     """
-    return dict()
+    # Only allow if user logged in
+    if not 'curr_user_id' in request.cookies:
+        session.flash = "Sorry, you need to be signed in to see your bootables!"
+        redirect(URL('index'))
+
+    bootables = []
+    for db_bootable in db(db.bootables.boot_manager == request.cookies['curr_user_id'].value)\
+            .select(orderby=~db.bootables.id,
+                    limitby=((0, 10) if not request.args(0)
+                             else ((request.args[0] * 10), ((request.args[0] + 1) * 10)))):
+        bootable = Storage()
+        bootable['id'] = db_bootable.id
+        if db_bootable.status == NOT_AVAILABLE:
+            bootable['status'] = "Not Available to Public"
+        elif db_bootable.status == OPEN_FOR_PLEDGES:
+            bootable['status'] = "Open for pledges!"
+        else:
+            bootable['status'] = "Closed."
+        bootable['title'] = db_bootable.title
+        bootable['category'] = db.categories[db_bootable.category_ref].name
+        bootable['owner'] = db.users[db_bootable.boot_manager].username
+        bootable['intro'] = db_bootable.intro
+        bootable['goal'] = db_bootable.goal
+        value_sum = db.pledges.value.sum()
+        bootable['total'] = db((db.pledges.boot_ref == db_bootable.id)
+                               & (db.pledged.pledge_ref == db.pledges.id)).select(value_sum).first()[value_sum]
+        bootables.append(bootable)
+
+    return dict(bootables=bootables)
 
 
 def new_boot():
@@ -371,6 +412,53 @@ def edit_boot():
     return dict(form=form)
 
 
+def delete_boot():
+    # Only allow if user logged in
+    if not 'curr_user_id' in request.cookies:
+        session.flash = "Sorry, you need to be signed in to create and modify bootables!"
+        redirect(URL('index'))
+
+    if request.args(0):
+        db_bootable = db.bootables[int(request.args[0])]
+        if db_bootable.boot_manager != int(request.cookies['curr_user_id'].value):
+            session.flash = "Sorry, that bootable doesn't belong to you."
+        elif db_bootable.status == OPEN_FOR_PLEDGES:
+            session.flash = "Sorry, that bootable's currently open to pledges." \
+                            " You need to close it before you can delete it."
+        else:
+            db_bootable.delete_record()
+    else:
+        session.flash = "Please specify the ID of the bootable you wish to delete."
+    redirect(URL('dashboard'))
+
+
+def progress_boot():
+    # Only allow if user logged in
+    if not 'curr_user_id' in request.cookies:
+        session.flash = "Sorry, you need to be signed in to create and modify bootables!"
+        redirect(URL('index'))
+
+    if request.args(0):
+        db_bootable = db.bootables[int(request.args[0])]
+        if db_bootable.boot_manager != int(request.cookies['curr_user_id'].value):
+            session.flash = "Sorry, that bootable doesn't belong to you."
+        elif db_bootable.status == NOT_AVAILABLE:
+            db_bootable.update_record(status=OPEN_FOR_PLEDGES)
+        elif db_bootable.status == OPEN_FOR_PLEDGES:
+            value_sum = db.pledges.value.sum()
+            raised = db((db.pledges.boot_ref == db_bootable.id)
+                            & (db.pledged.pledge_ref == db.pledges.id)).select(value_sum).first()[value_sum]
+            if raised > db_bootable.goal:
+                db_bootable.update_record(status=CLOSED_FUNDED)
+            else:
+                db_bootable.update_record(status=CLOSED_NOT_FUNDED)
+        else:
+            session.flash = "Your bootable has already been closed, there's nothing more to do!"
+    else:
+        session.flash = "Please specify the ID of the bootable you wish to delete."
+    redirect(URL('dashboard'))
+
+
 def edit_pledges():
     """
     Edit pledges screen for a bootable.
@@ -428,7 +516,7 @@ def edit_pledges():
                 session.pledges[pledge_id] = (None, None)
 
             else:
-                pledges.append(DIV(SPAN('Value: ' + value),
+                pledges.append(DIV(SPAN('Value: {}'.format(value)),
                                    SPAN('Reward: ' + reward),
                                    A('Edit', callback=URL(vars=dict(pledge_edit_id=pledge_id))),
                                    A('Delete', callback=URL(vars=dict(delete_pledge_id=pledge_id)))))
