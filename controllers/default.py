@@ -15,7 +15,7 @@ def index():
     newest = []
     for db_bootable in db(db.bootables.status != NOT_AVAILABLE).select(orderby=~db.bootables.id, limitby=(0, 5)):
         bootable = Storage()
-        bootable['title'] = db_bootable.title
+        bootable['title'] = A(db_bootable.title, callback=URL('view_boot', args=db_bootable.id))
         bootable['category'] = db.categories[db_bootable.category_ref].name
         bootable['owner'] = db.users[db_bootable.boot_manager].username
         bootable['intro'] = db_bootable.intro
@@ -34,11 +34,11 @@ def index():
             .select(db.bootables.ALL, totals, groupby=db.bootables.id, orderby=~totals,
                     having=((db.bootables.goal - totals) > 0), limitby=(0, 5)):
         bootable = Storage()
-        bootable['title'] = db_bootable.title
-        bootable['category'] = db.categories[db_bootable.category_ref].name
-        bootable['owner'] = db.users[db_bootable.boot_manager].username
-        bootable['intro'] = db_bootable.intro
-        bootable['goal'] = db_bootable.goal
+        bootable['title'] = A(db_bootable.bootables.title, callback=URL('view_boot', args=db_bootable.bootables.id))
+        bootable['category'] = db.categories[db_bootable.bootables.category_ref].name
+        bootable['owner'] = db.users[db_bootable.bootables.boot_manager].username
+        bootable['intro'] = db_bootable.bootables.intro
+        bootable['goal'] = db_bootable.bootables.goal
         bootable['total'] = db_bootable[totals]
         closest.append(bootable)
 
@@ -174,7 +174,7 @@ def signup():
                                            postcode=session.signup['address.postcode'])
 
             # If marked, use the same data for user address and billing address
-            credit_address_id = db.address.update_or_insert(number=request.vars.bill_house,
+            credit_address_id = db.address.insert(number=request.vars.bill_house,
                                                             street=request.vars.bill_street,
                                                             city=request.vars.bill_city,
                                                             country=request.vars.bill_country,
@@ -218,42 +218,123 @@ def view_profile():
         session.flash = "Sorry, you need to be signed in to see your bootables!"
         redirect(URL('index'))
 
-    db_profile = db(db.users.id == request.cookies['curr_user_id'].value
-                    & (db.users.address_ref == db.address.id)
-                    & (db.users.credit_ref == db.credit.id)).select().first()
-    credit_address = db.address[db_profile.credit.address_ref]
+    # Fetch the currently logged in user's details
+    db_profile = db.users[request.cookies['curr_user_id'].value]
+    db_address = db.address[db_profile.address_ref]
+    db_credit = db.credit[db_profile.credit_ref]
+    db_credit_address = db.address[db_credit.address_ref]
 
-    profile = dict()
-    profile['firstname'] = db_profile.users.firstname
-    profile['lastname'] = db_profile.users.lastname
-    profile['username'] = db_profile.users.username
-    profile['dob'] = db_profile.users.dob
+    # Create a form of all of the user's info for updating as needed
+    form = FORM(H3('Login info'),
+                DIV(LABEL('Username', _for='username'),
+                    INPUT(_name='username', requires=IS_NOT_IN_DB(db, 'users.username',
+                          allowed_override=db_profile.username),
+                          _value=db_profile.username)),
+                DIV(LABEL('Password', _for='password'),
+                    INPUT(_name='password', _type='password', requires=IS_NOT_EMPTY(),
+                          _value=db_profile.pwd)),
+                DIV(LABEL('Confirm Password', _for='confirm_pwd'),
+                    INPUT(_name='confirm_pwd', _type='password', requires=IS_EQUAL_TO(request.vars.password),
+                          _value=db_profile.pwd)),
+                H3('Personal Info'),
+                DIV(LABEL('First Name', _for='firstname'),
+                    INPUT(_name='firstname', requires=IS_NOT_EMPTY(),
+                          _value=db_profile.firstname)),
+                DIV(LABEL('Last Name', _for='lastname'),
+                    INPUT(_name='lastname', requires=IS_NOT_EMPTY(),
+                          _value=db_profile.lastname)),
+                DIV(LABEL('Date of Birth', _for='dob'),
+                    INPUT(_name='dob', _type='date',
+                          requires=IS_DATE_IN_RANGE(maximum=date.today()),
+                          _value=db_profile.dob)),
+                DIV(H4('Address'),
+                    DIV(LABEL('House Name / Number', _for='house'),
+                        INPUT(_name='house', requires=IS_NOT_EMPTY(),
+                              _value=db_address.number)),
+                    DIV(LABEL('Road name', _for='street'),
+                        INPUT(_name='street', requires=IS_NOT_EMPTY(),
+                              _value=db_address.street)),
+                    DIV(LABEL('City', _for='city'),
+                        INPUT(_name='city', requires=IS_NOT_EMPTY(),
+                              _value=db_address.city)),
+                    DIV(LABEL('Country', _for='country'),
+                        INPUT(_name='country', requires=IS_NOT_EMPTY(),
+                              _value=db_address.country)),
+                    DIV(LABEL('Post Code', _for='postcode'),
+                        INPUT(_name='postcode', requires=IS_MATCH('^\w{4} \w{3}$'),
+                              _value=db_address.postcode))),
+                H3('Credit Details'),
+                DIV(LABEL('Card Number', _for='card_num'),
+                    INPUT(_name='card_num', _type='number', requires=IS_MATCH('^\d{12}$'),
+                          _value=db_credit.number)),
+                DIV(LABEL('Card Expiry Date', _for='expiry'),
+                    INPUT(_name='expiry', _type='month', requires=IS_DATE_IN_RANGE(format='%Y-%m',
+                                                                                   minimum=date.today()),
+                          _value=db_credit.expiry)),
+                DIV(LABEL('Security PIN', _for='pin'),
+                    INPUT(_name='pin', _type='number', _min='000', _max='999', requires=IS_MATCH('^\d{3}$'),
+                          _value=db_credit.PIN)),
+                DIV(H4('Billing Address'),
+                    DIV(LABEL('House Name / Number', _for='bill_house'),
+                        INPUT(_name='bill_house', requires=IS_NOT_EMPTY(),
+                              _value=db_credit_address.number, _readonly='true')),
+                    DIV(LABEL('Road name', _for='bill_street'),
+                        INPUT(_name='bill_street', requires=IS_NOT_EMPTY(),
+                              _value=db_credit_address.street, _readonly='true')),
+                    DIV(LABEL('City', _for='bill_city'),
+                        INPUT(_name='bill_city', requires=IS_NOT_EMPTY(),
+                              _value=db_credit_address.city, _readonly='true')),
+                    DIV(LABEL('Country', _for='bill_country'),
+                        INPUT(_name='bill_country', requires=IS_NOT_EMPTY(),
+                              _value=db_credit_address.country, _readonly='true')),
+                    DIV(LABEL('Post Code', _for='bill_postcode'),
+                        INPUT(_name='bill_postcode', requires=IS_MATCH('^\w{4} \w{3}$'),
+                              _value=db_credit_address.postcode, _readonly='true'))),
+                DIV(INPUT(_type='submit', _value='Submit')))
 
-    address = Storage()
-    address['house'] = db_profile.address.number
-    address['street'] = db_profile.address.street
-    address['city'] = db_profile.address.city
-    address['country'] = db_profile.address.country
-    address['postcode'] = db_profile.address.postcode
-    profile['address'] = address
+    pledges = []
+    for bootable in db((db.pledged.user_ref == request.cookies['curr_user_id'].value)
+                     & (db.pledged.pledge_ref == db.pledges.id)
+                     & (db.pledges.boot_ref == db.bootables.id)).select(db.bootables.ALL, db.pledges.ALL, distinct=True):
+        pledge = Storage()
+        pledge['title'] = bootable.bootables.title
+        pledge['category'] = db.categories[bootable.bootables.category_ref].name
+        pledge['owner'] = db.users[bootable.bootables.boot_manager].username
+        pledge['intro'] = bootable.bootables.intro
+        pledge['goal'] = bootable.bootables.goal
+        value_sum = db.pledges.value.sum()
+        pledge['total'] = db((db.pledges.boot_ref == bootable.bootables.id)
+                             & (db.pledged.pledge_ref == db.pledges.id)).select(value_sum).first()[value_sum]
+        pledge['value'] = bootable.pledges.value
+        pledge['reward'] = bootable.pledges.reward
+        pledges.append(pledge)
 
-    credit = Storage()
-    credit['number'] = db_profile.credit.number
-    credit['expiry'] = db_profile.credit.expiry
-    credit['pin'] = db_profile.credit.PIN
-    cred_address = Storage()
-    cred_address['house'] = credit_address.number
-    cred_address['street'] = credit_address.street
-    cred_address['city'] = credit_address.city
-    cred_address['country'] = credit_address.country
-    cred_address['postcode'] = credit_address.postcode
-    credit['address'] = cred_address
-    profile['credit'] = credit
+    if form.accepts(request, session):
+        db_profile.update_record(username=request.vars.username,
+                                 pwd=request.vars.password,
+                                 firstname=request.vars.firstname,
+                                 lastname=request.vars.lastname,
+                                 dob=request.vars.dob)
 
-    # TODO: Bootables funding list
-    profile['pledges'] = []
+        db_address.update_record(number=request.vars.house,
+                                 street=request.vars.street,
+                                 city=request.vars.city,
+                                 country=request.vars.country,
+                                 postcode=request.vars.postcode)
 
-    return profile
+        db_credit.update_record(number=request.vars.card_num,
+                                expiry=request.vars.expiry,
+                                PIN=request.vars.pin)
+
+        db_credit_address.update_record(number=request.vars.bill_house,
+                                        street=request.vars.bill_street,
+                                        city=request.vars.bill_city,
+                                        country=request.vars.bill_country,
+                                        postcode=request.vars.bill_postcode)
+
+        redirect(URL())
+
+    return dict(form=form, pledges=pledges)
 
 
 def dashboard():
@@ -280,7 +361,8 @@ def dashboard():
             bootable['status'] = "Open for pledges!"
         else:
             bootable['status'] = "Closed."
-        bootable['title'] = db_bootable.title
+        bootable['title'] = A(db_bootable.title, callback=URL('view_boot', args=db_bootable.id)) \
+            if db_bootable.status != NOT_AVAILABLE else db_bootable.title
         bootable['category'] = db.categories[db_bootable.category_ref].name
         bootable['owner'] = db.users[db_bootable.boot_manager].username
         bootable['intro'] = db_bootable.intro
@@ -331,7 +413,7 @@ def edit_boot():
                 redirect(URL('index'))
             elif bootable.status != NOT_AVAILABLE:
                 session.flash = "Sorry, you've already made your idea available to the public! No going back now!"
-                redirect(URL('index'))
+                redirect(URL('dashboard'))
             else:
                 session.bootable = dict()
                 session.bootable['title'] = bootable.title
@@ -395,19 +477,16 @@ def edit_boot():
             session.bootable['about_us'] = request.vars.about_us
             redirect(URL('edit_pledges', vars=dict(add_pledge=True)))
         else:
-            db.bootables.insert(title=session.bootable['title'],
-                                intro=session.bootable['intro'],
-                                category_ref=session.bootable['category'],
-                                goal=session.bootable['goal'],
-                                # image=session.bootable['image'],
-                                desc=session.bootable['desc'],
-                                about_us=session.bootable['about_us'],
-                                status=NOT_AVAILABLE,
-                                boot_manager=request.cookies['curr_user_id'].value)
-            db.commit()
+            db.bootables[request.args[0]].update_record(title=request.vars.title,
+                                                        intro=request.vars.intro,
+                                                        category_ref=request.vars.category,
+                                                        goal=request.vars.goal,
+                                                        # image=request.vars.image,
+                                                        desc=request.vars.desc,
+                                                        about_us=request.vars.about_us)
             del session.bootable
             del session.boot_edit
-            redirect(URL())
+            redirect(URL('dashboard'))
 
     return dict(form=form)
 
@@ -481,12 +560,13 @@ def edit_pledges():
                 redirect(URL('index'))
             elif bootable.status != NOT_AVAILABLE:
                 session.flash = "Sorry, you've already made your idea available to the public! No going back now!"
-                redirect(URL('index'))
+                redirect(URL('dashboard'))
             else:
                 session.pledges = dict()
                 for pledge in db(db.pledges.boot_ref == boot_id).select(db.pledges.id,
                                                                         db.pledges.value,
-                                                                        db.pledges.reward):
+                                                                        db.pledges.reward,
+                                                                        orderby=db.pledges.value):
                     session.pledges[pledge.id] = (pledge.value, pledge.reward)
                 session.pledge_edit = boot_id
         except ValueError:
@@ -516,7 +596,7 @@ def edit_pledges():
                 session.pledges[pledge_id] = (None, None)
 
             else:
-                pledges.append(DIV(SPAN('Value: {}'.format(value)),
+                pledges.append(DIV(SPAN('Value: {}' + str(value)),
                                    SPAN('Reward: ' + reward),
                                    A('Edit', callback=URL(vars=dict(pledge_edit_id=pledge_id))),
                                    A('Delete', callback=URL(vars=dict(delete_pledge_id=pledge_id)))))
@@ -547,7 +627,7 @@ def edit_pledges():
         else:
             session.pledges[int(request.vars.pledge_edit_id)] = (request.vars.value, request.vars.reward)
 
-        redirect(URL())
+        redirect(URL(vars=dict(add_pledge=True)))
 
     # If the bootable has been completed, start creating pledges
     return dict(pledges=pledges)
@@ -567,9 +647,10 @@ def view_boot():
             redirect(URL('index'))
 
         db_bootable = db(db.bootables.id == boot_id).select().first()
-        if db_bootable is not None:
+        if db_bootable is not None and db_bootable.status != NOT_AVAILABLE:
             bootable = dict()
             bootable['title'] = db_bootable.title
+            bootable['status'] = "Open for pledges!" if db_bootable.status == OPEN_FOR_PLEDGES else "Closed."
             bootable['intro'] = db_bootable.intro
             bootable['category'] = db.categories[db_bootable.category_ref].name
             bootable['goal'] = db_bootable.goal
@@ -581,12 +662,13 @@ def view_boot():
             total = 0
 
             # Collect the list of pledges available
-            for db_pledge in db(db.pledges.boot_ref == boot_id).select():
+            for db_pledge in db(db.pledges.boot_ref == boot_id).select(orderby=db.pledges.value):
                 pledge = Storage()
                 pledge['value'] = db_pledge.value
                 pledge['reward'] = db_pledge.reward
-                pledge['pledge_link'] = A('Pledge', _class='button',
-                                          callback=URL('pledge', args=db_pledge.id))
+                if db_bootable.status == OPEN_FOR_PLEDGES:
+                    pledge['pledge_link'] = A('Pledge', _class='button',
+                                              callback=URL('pledge', args=db_pledge.id))
                 pledge['pledgers'] = []
 
                 # Create a list of pledgers and sum their pledges
@@ -603,11 +685,11 @@ def view_boot():
             bootable['total'] = total
         else:
             session.flash = "Sorry, we couldn't find the bootable you're looking for."
-            redirect(URL('view_profile'))
+            redirect(URL('index'))
 
     else:
         session.flash = "Please specify the bootable you're looking for using their ID."
-        redirect(URL('view_profile'))
+        redirect(URL('index'))
 
     return bootable
 
@@ -667,7 +749,7 @@ def finish_boot():
         del session.pledge_edit
     db.commit()
 
-    redirect(URL('view_boot', args=boot_id))
+    redirect(URL('dashboard'))
 
 
 def search():
@@ -678,11 +760,12 @@ def search():
     if 'query' in request.vars:
         result = []
 
-        for db_result in db(db.bootables.title.contains(request.vars.query)
-                            | db.bootables.intro.contains(request.vars.query)) \
+        for db_result in db((db.bootables.title.contains(request.vars.query)
+                            | db.bootables.intro.contains(request.vars.query))
+                            & (db.bootables.status != NOT_AVAILABLE))\
                 .select(limitby=(request.args[0] * 10, (request.args[0] + 1) * 10) if request.args(0) else None):
             bootable = Storage()
-            bootable['title'] = db_result.title
+            bootable['title'] = A(db_result.title, callback=URL('view_boot', args=db_result.id))
             bootable['category'] = db.categories[db_result.category_ref].name
             bootable['owner'] = db.users[db_result.boot_manager].username
             bootable['intro'] = db_result.intro
@@ -696,11 +779,11 @@ def search():
             elif 'category' not in request.vars:
                 result.append(bootable)
 
-            search_string = request.vars.query
-            if 'category' in request.vars:
-                search_string += ' @' + request.vars.category
-            if request.args(0):
-                search_string += '(' + str(request.args[0] * 10) + '-' + str((request.args[0] + 1) * 10) + ')'
+        search_string = request.vars.query
+        if 'category' in request.vars:
+            search_string += ' @' + request.vars.category
+        if request.args(0):
+            search_string += '(' + str(request.args[0] * 10) + '-' + str((request.args[0] + 1) * 10) + ')'
 
     else:
         session.flash = 'Please pass in a search query'
@@ -730,14 +813,16 @@ def pledge():
         redirect(URL('index'))
 
     m_pledge = db.pledges[pledge_id]
-    db.pledged.insert(pledge_ref=pledge_id,
-                      user_ref=request.cookies['curr_user_id'].value)
-    db.commit()
-
-    boot_title = db.bootables[m_pledge.boot_ref].title
-
-    session.flash = "You just pledged £" + m_pledge.reward + " to " + boot_title + ". Good on you. :)"
+    bootable = db.bootables[m_pledge.boot_ref]
+    if bootable.status == OPEN_FOR_PLEDGES:
+        db.pledged.insert(pledge_ref=pledge_id,
+                          user_ref=request.cookies['curr_user_id'].value)
+        db.commit()
+        session.flash = "You just pledged £" + str(m_pledge.value) + " to " + bootable.title + ". Good on you. :)"
+    else:
+        session.flash = "Sorry, that bootable's not open for pledges right now!"
     redirect(URL('view_boot', args=m_pledge.boot_ref))
+
 
 def login():
     """

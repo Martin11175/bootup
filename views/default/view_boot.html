@@ -1,6 +1,7 @@
 {{extend 'layout.html'}}
 <div>
-    <H2>{{=title}}<H4> @{{=category}}</H4></H2>
+    <H2>{{=title}}<H4> @{{=category}}</H4></H2> -
+    <b>{{=status}}</b>
     <span>An idea from the mind of {{=B(owner)}}</span>
 </div>
 <div>
@@ -41,7 +42,7 @@
             {{='have' if len(pledge.pledgers) > 1 else 'has'}} pledged this amount
         </span>
     {{pass}}
-    {{=pledge.pledge_link}}
+    {{=pledge.pledge_link if pledge.pledge_link is not None else ''}}
     </div>
 {{pass}}
 </div>

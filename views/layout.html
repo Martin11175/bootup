@@ -12,7 +12,7 @@
 
 <body>
     <header>
-        <h1>Welcome to BootUp!</h1>
+        <h1 id="home"><a href="{{=URL('index')}}">BootUp!</a></h1>
 	    {{=search}}
 	    {{=user_controls}}
     </header>
@@ -50,7 +50,7 @@
 
 
 	function search() {
-		var search_string = $("#search").val();
+		var search_string = $("#search_box").val();
 		var split = search_string.indexOf('@');
 		if (split != -1) {
             var query = search_string.substring(0, split).trim();
@@ -64,7 +64,7 @@
 	$("#search_button").click(function() {
 		search();
 	});
-    $("#search").keypress(function(key) {
+    $("#search_box").keypress(function(key) {
 	    if(key.which == 13) { // If enter pressed in search
 		    search();
 	    }

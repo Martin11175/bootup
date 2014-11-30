@@ -1,39 +1,15 @@
 {{extend 'layout.html'}}
-<H3>{{=username}}</H3>
-<div>
-    <label>Real name: </label>
-    <span>{{=(firstname + ' ' + lastname)}}</span>
-</div>
-<div>
-    <label>Date of Birth: </label>
-    <span>{{=dob}}</span>
-</div>
-<div>
-    <H4>Address</H4>
-    <span>{{=(address.house + ', ' + address.street + ',')}}</span>
-    <span>{{=(address.city + ',')}}</span>
-    <span>{{=(address.country + ',')}}</span>
-    <span>{{=address.postcode}}</span>
-</div>
-<div>
-    <H4>Credit information</H4>
-    <div>
-        <label>Card number: </label>
-        <span>{{=credit.number}}</span>
-    </div>
-    <div>
-        <label>Expiry Date: </label>
-        <span>{{=credit.expiry}}</span>
-    </div>
-    <div>
-        <label>Security PIN: </label>
-        <span>{{=credit.pin}}</span>
-    </div>
-    <div>
-        <H5>Billing Address</H5>
-        <span>{{=(credit.address.house + ', ' + credit.address.street + ',')}}</span>
-        <span>{{=(credit.address.city + ',')}}</span>
-        <span>{{=(credit.address.country + ',')}}</span>
-        <span>{{=credit.address.postcode}}</span>
-    </div>
-</div>
+{{=form}}
+{{if len(pledges) > 0:}}
+    <H3>Bootables you've pledged to:</H3>
+	{{for bootable in pledges:}}
+        <div>
+            <H3>{{=bootable.title}}</H3>
+            <H4>{{=bootable.owner}}</H4>
+            <span>{{=('@' + bootable.category)}}</span>
+            <span>{{=bootable.intro}}</span>
+            <span>{{=bootable.total}} out of {{=bootable.goal}}</span>
+            <span>You pledged: £{{=bootable.value}}</span>
+        </div>
+	{{pass}}
+{{pass}}

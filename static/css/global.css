@@ -1,6 +1,44 @@
 /* True beauty isn't based on looks alone */
 body {
     width: 100%;
+    display: block;
+}
+
+header {
+    width: 70%;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+#home {
+    float:left;
+    width: 20%;
+}
+
+#user_controls {
+    float: right;
+    width: 35%;
+    margin: 1.75em 0;
+}
+
+#search {
+    display: inline-block;
+    width: 45%;
+    margin: 1.75em 0;
+}
+
+#search_box {
+    width: 70%
+}
+
+#message_box {
+    text-align: center;
+}
+
+#main{
+    clear: both;
+    width: 60%;
+    margin: 0 auto;
 }
 
 /* Make all the things that act like buttons, look like buttons! */
@@ -15,4 +53,8 @@ a.button, a.button:visited {
 
     -webkit-appearance: push-button;
     cursor: default;
+}
+
+textarea {
+    resize: none;
 }
