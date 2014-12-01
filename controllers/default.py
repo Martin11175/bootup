@@ -31,7 +31,7 @@ def index():
     for db_bootable in db((db.bootables.status == OPEN_FOR_PLEDGES)
                           & (db.bootables.id == db.pledges.boot_ref)
                           & (db.pledges.id == db.pledged.pledge_ref))\
-            .select(db.bootables.ALL, totals, groupby=db.bootables.id, orderby=~totals,
+            .select(db.bootables.ALL, totals, groupby=db.bootables.id, orderby=(db.bootables.goal - totals),
                     having=(db.bootables.goal > totals), limitby=(0, 5)):
         bootable = Storage()
         bootable['title'] = A(db_bootable.bootables.title, callback=URL('view_boot', args=db_bootable.bootables.id))
