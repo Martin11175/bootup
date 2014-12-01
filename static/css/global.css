@@ -1,4 +1,5 @@
 /* True beauty isn't based on looks alone */
+/* Created by Y8186314 */
 body {
     width: 100%;
     display: block;
@@ -8,6 +9,7 @@ header {
     width: 70%;
     margin: 0 auto;
     overflow: hidden;
+    border-bottom: 1px solid darkgrey;
 }
 
 #home {
@@ -18,13 +20,21 @@ header {
 #user_controls {
     float: right;
     width: 35%;
-    margin: 1.75em 0;
+    margin: 1.625em 0;
+}
+
+.user_control {
+    margin: 5px;
+}
+
+#login_username, #login_password {
+    width: 30%;
 }
 
 #search {
     display: inline-block;
     width: 45%;
-    margin: 1.75em 0;
+    margin: 1.625em 0;
 }
 
 #search_box {
@@ -32,6 +42,7 @@ header {
 }
 
 #message_box {
+    margin-top: 1em;
     text-align: center;
 }
 
@@ -53,8 +64,18 @@ a.button, a.button:visited {
 
     -webkit-appearance: push-button;
     cursor: default;
+    margin: 5px;
 }
 
 textarea {
     resize: none;
+}
+
+footer {
+    border-top: 1px solid darkgrey;
+    padding-top: 0.5em;
+    width: 70%;
+    margin: 1em auto 0 auto;
+    text-align: center;
+    clear: both;
 }

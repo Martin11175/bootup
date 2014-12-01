@@ -1,0 +1,48 @@
+/* Created by Y8186314 */
+
+h2, h3, h4 {
+    display: inline;
+}
+
+#title_block {
+    margin-bottom: 1em;
+}
+
+#boot_block {
+    float: left;
+    width: 60%;
+    margin-right: 10%;
+}
+
+#boot_block h2 {
+    display: block;
+}
+
+#pledge_block {
+    float: right;
+    width: 30%;
+    margin-top: 3em;
+}
+
+.pledge_link {
+    right: 0;
+    top: 0.25em;
+    position: absolute;
+}
+
+.pledge {
+    border-top: 1px solid darkgrey;
+    margin-top: 0.5em;
+    position: relative;
+}
+
+.pledge h2 {
+    display: block;
+    margin: 0.25em 0;
+}
+
+.pledgers {
+    color: darkgrey;
+    text-align: right;
+    margin-top: 0.5em;
+}

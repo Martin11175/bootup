@@ -1,48 +1,51 @@
 {{extend 'layout.html'}}
-<div>
-    <H2>{{=title}}<H4> @{{=category}}</H4></H2> -
-    <b>{{=status}}</b>
-    <span>An idea from the mind of {{=B(owner)}}</span>
-</div>
-<div>
-    <H3>£{{=total}}</H3> out of <H3>£{{=goal}}</H3>
-</div>
-<div>
-    <label>Just a quick introduction: </label>
-    <span>{{=intro}}</span>
-</div>
-<img src="http://placekitten.com/g/512/384">
-<div>
-    <label>Meet the idea makers:</label>
-    <span>{{=about}}</span>
-</div>
-<div>
-    <label>So the long story is...:</label>
-    <span>{{=description}}</span>
-</div>
-<div>
-    <H3>How you can help:</H3>
-{{for pledge in pledges:}}
-    <div>
-        <span>Pledging £{{=pledge.value}} will get you:</span>
-        <span>{{=pledge.reward}}</span>
-    {{if len(pledge.pledgers) > 0:}}
-        <span>
-            {{i = 0}}
-            {{for pledger in pledge.pledgers:}}
-                {{if i == 0:}}
-                    {{=pledger}}
-                {{elif i < 10:}}
-                    , {{=pledger}}
-                {{elif i == 10:}}
-                    {{='...'}}
-                {{pass}}
-                {{i += 1}}
-            {{pass}}
-            {{='have' if len(pledge.pledgers) > 1 else 'has'}} pledged this amount
-        </span>
-    {{pass}}
-    {{=pledge.pledge_link if pledge.pledge_link is not None else ''}}
+<div id="boot_block">
+    <div id="title_block">
+        <H1>{{=title}}<H4> @{{=category}}</H4></H1> -
+        <b>{{=status}}</b>
+        <span>An idea from the mind of {{=B(owner)}}</span>
     </div>
-{{pass}}
+    <div>
+        <H2>Just a quick introduction: </H2>
+        <span>{{=intro}}</span>
+    </div>
+    <div>
+        <H2>Meet the idea makers:</H2>
+        <span>{{=about}}</span>
+    </div>
+    <div>
+        <H2>So the long story is:</H2>
+        <span>{{=description}}</span>
+    </div>
 </div>
+<div id="pledge_block">
+    <div>
+        <H2>£{{=total}}</H2> out of <H2>£{{=goal}}</H2> raised.
+    </div>
+	<br/>
+    <H3>How you can help:</H3>
+    {{for pledge in pledges:}}
+        <div class="pledge">
+            <H2>£{{=pledge.value}}</H2>
+            <span>{{=pledge.reward}}</span>
+        {{if len(pledge.pledgers) > 0:}}
+            <div class="pledgers">
+                {{i = 0}}
+                {{for pledger in pledge.pledgers:}}
+                    {{if i == 0:}}
+                        {{=pledger}}
+                    {{elif i < 10:}}
+                        , {{=pledger}}
+                    {{elif i == 10:}}
+                        {{='...'}}
+                    {{pass}}
+                    {{i += 1}}
+                {{pass}}
+                {{='have' if len(pledge.pledgers) > 1 else 'has'}} pledged this amount
+            </div>
+        {{pass}}
+        {{=pledge.pledge_link if pledge.pledge_link is not None else ''}}
+        </div>
+    {{pass}}
+</div>
+<div style="clear: both;"></div>

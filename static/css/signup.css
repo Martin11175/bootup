@@ -1,0 +1,73 @@
+/* Created by Y8186314 */
+
+label {
+    display: block;
+    margin: 1em 0 0.5em 0.5em;
+}
+
+input {
+    width: 20em;
+}
+
+progress {
+    clear: both;
+    margin: 1em 42% 0 42%;
+}
+
+.error {
+    color: red;
+}
+
+.error_wrapper {
+    margin-top: 0.5em;
+}
+
+.button_forward {
+    margin-top: 1.5em;
+    width: auto;
+    float: right;
+}
+
+.button_back {
+    margin-top: 1.5em;
+    float: left;
+}
+
+/* First form requires less information, so make it smaller */
+#user_form {
+    width: 50%;
+    margin: 0 auto;
+}
+
+#user_form label {
+    margin-left: 5em;
+}
+
+#user_form input {
+    margin-left: 4.5em;
+}
+
+#user_form .error_wrapper {
+    margin-left: 3.75em;
+}
+
+/* Other forms have 2 sets of fields, so split into 2 columns */
+#split_form {
+    width: 70%;
+    margin: 0 auto;
+}
+
+.info_div {
+    float: left;
+    width: 50%;
+    margin-top: 5%;
+}
+
+.address_div {
+    float: right;
+    width: 50%;
+}
+
+.clear {
+    clear: both;
+}
