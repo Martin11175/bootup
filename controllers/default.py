@@ -224,6 +224,8 @@ def signup():
             db.commit()
 
             # Clear current session in case another user wants to sign up
+            session.flash = "Congratulations " + session.signup['username'] + "! Welcome to the community."
+            session.signup = dict()
             del session.signup
             del session.current_signup_page
 
