@@ -17,10 +17,10 @@ CLOSED_NOT_FUNDED = 'CLOSED_NOT_FUNDED'
 # If logged in show access to user specific functions
 if ('curr_user_id' in request.cookies) ^ ('curr_user_id' in response.cookies):
     username = db.users(request.cookies['curr_user_id'].value).username
-    user_controls = DIV(SPAN('Welcome ', A(username, callback=URL('view_profile')), _class='user_control'),
-                        A('Logout', callback=URL('logout'), _class='button'),
-                        A('Your Dashboard', callback=URL('dashboard'), _class='user_control'),
-                        A('Bootable++', callback=URL('new_boot'), _class='user_control'),
+    user_controls = DIV(SPAN('Welcome ', A(username, callback=URL('profile', 'view')), _class='user_control'),
+                        A('Logout', callback=URL('default', 'logout'), _class='button'),
+                        A('Your Dashboard', callback=URL('profile', 'dashboard'), _class='user_control'),
+                        A('Bootable++', callback=URL('boot', 'new'), _class='user_control'),
                         _id='user_controls')
 
 # Initial login / register controls
@@ -29,7 +29,7 @@ else:
     login_pwd = INPUT(_id='login_password', _type='password', _placeholder='password', _class='user_control')
     user_controls = DIV(login_user, login_pwd,
                         A('Login', _id='login_button', _class='button'),
-                        A('Register', callback=URL('signup'), _class='user_control'),
+                        A('Register', callback=URL('profile', 'signup'), _class='user_control'),
                         _id='user_controls')
 
 elements['user_controls'] = user_controls

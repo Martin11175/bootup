@@ -12,7 +12,7 @@
 
 <body>
     <header>
-        <h1 id="home"><a href="{{=URL('index')}}">BootUp!</a></h1>
+        <h1 id="home"><a href="{{=URL('default', 'index')}}">BootUp!</a></h1>
 	    {{=search}}
 	    {{=user_controls}}
     </header>
@@ -33,7 +33,7 @@
         var login_user = $("#login_username").val();
         var login_pwd = $("#login_password").val();
 
-        window.location.replace('{{=URL('login')}}?login_user=' + login_user + '&login_pwd=' + login_pwd);
+        window.location.replace('{{=URL('default', 'login')}}?login_user=' + login_user + '&login_pwd=' + login_pwd);
 	}
     $("#login_button").click(function() {
 	    login();
@@ -56,9 +56,9 @@
 		if (split != -1) {
             var query = search_string.substring(0, split).trim();
             var category = search_string.substring(split + 1, search_string.length).trim();
-            window.location.replace('{{=URL('search')}}?query=' + query + '&category=' + category);
+            window.location.replace('{{=URL('default', 'search')}}?query=' + query + '&category=' + category);
         } else {
-            window.location.replace('{{=URL('search')}}?query=' + search_string);
+            window.location.replace('{{=URL('default', 'search')}}?query=' + search_string);
 		}
 
 	}
