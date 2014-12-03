@@ -59,6 +59,11 @@ progress {
     margin: 0 auto;
 }
 
+.long_div {
+    float: left;
+    width: 50%;
+}
+
 .left_div {
     float: left;
     width: 50%;
