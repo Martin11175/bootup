@@ -1,9 +1,15 @@
 <!-- Bootable short form. -->
 <div class="boot">
-    <H3>{{=bootable.title}}</H3>
-    <H4>{{=bootable.owner}}</H4>
-    <span>{{=('@' + bootable.category)}}</span>
-    <span>{{=bootable.intro}}</span>
-    <span>£{{=bootable.total if bootable.total is not None else 0}} out of £{{=bootable.goal}}</span>
-    <b>{{=bootable.status}}</b>
+	<div class="headline">
+        <H2>{{=bootable.title}}</H2>
+        <span>{{=('@' + bootable.category)}} by </span>
+        <H3>{{=bootable.owner}}</H3>
+         - <b>{{=bootable.status}}</b>
+	</div>
+    <div>{{=bootable.intro}}</div>
+    <div class="totals">
+	    <b>£{{=bootable.total if bootable.total is not None else 0}}</b>
+	     out of
+	    <b>£{{=bootable.goal}}</b>
+    </div>
 </div>

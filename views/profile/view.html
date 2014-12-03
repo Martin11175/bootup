@@ -3,13 +3,6 @@
 {{if len(pledges) > 0:}}
     <H3>Bootables you've pledged to:</H3>
 	{{for bootable in pledges:}}
-        <div>
-            <H3>{{=bootable.title}}</H3>
-            <H4>{{=bootable.owner}}</H4>
-            <span>{{=('@' + bootable.category)}}</span>
-            <span>{{=bootable.intro}}</span>
-            <span>{{=bootable.total}} out of {{=bootable.goal}}</span>
-            <span>You pledged: £{{=bootable.value}}</span>
-        </div>
+        {{include 'subviews/boot.html'}}
 	{{pass}}
 {{pass}}

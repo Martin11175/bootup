@@ -1,8 +1,10 @@
 {{extend 'layout.html'}}
+<h1>Your Dashboard</h1>
+<h4>Here you'll find all of your bootables. Manage and prepare your ideas for the world!</h4>
 {{for bootable in bootables:}}
 	<div>
         {{include 'subviews/boot.html'}}
-        <div>
+        <div class="boot_control">
             <a href="{{=URL('boot', 'edit', args=bootable.id)}}">Edit bootable</a>
             <a href="{{=URL('boot', 'edit_pledges', args=bootable.id)}}">Edit pledges</a>
             {{if bootable.status == "Not Available to Public":}}
@@ -20,3 +22,4 @@
 		<a href="{{=URL('boot', 'new')}}">Create a bootable!</a>
 	</div>
 {{pass}}
+<div class="clear"></div>

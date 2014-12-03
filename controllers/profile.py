@@ -294,7 +294,7 @@ def view():
                        & (db.pledged.pledge_ref == db.pledges.id)
                        & (db.pledges.boot_ref == db.bootables.id))\
             .select(db.bootables.ALL, db.pledges.ALL, distinct=True):
-        pledge = extract_bootable_short_form(bootable)
+        pledge = extract_bootable_short_form(bootable.bootables)
         pledge['value'] = bootable.pledges.value
         pledge['reward'] = bootable.pledges.reward
         pledges.append(pledge)
@@ -347,6 +347,7 @@ def dashboard():
                              else ((request.args[0] * 10), ((request.args[0] + 1) * 10)))):
         bootables.append(extract_bootable_short_form(db_bootable))
 
+    response.files.insert(2, URL('static', 'css/dashboard.css'))
     return dict(bootables=bootables)
 
 

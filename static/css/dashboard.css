@@ -1,0 +1,16 @@
+.boot {
+    float: left;
+    width: 65%;
+    min-height: 5em;
+}
+
+.boot_control {
+    float: right;
+    width: 30%;
+    padding: 0.5em 0;
+}
+
+.boot_control a {
+    display: block;
+    margin: 0.125em;
+}

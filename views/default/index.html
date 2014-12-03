@@ -1,12 +1,12 @@
 {{extend 'layout.html'}}
 <div>
-	<H2>Our community's newest ideas:</H2>
+	<H1>Our community's newest ideas:</H1>
     {{for bootable in newest:}}
         {{include 'subviews/boot.html'}}
     {{pass}}
 </div>
 <div>
-    <H2>Closest to their funding goals!</H2>
+    <H1>Closest to their funding goals!</H1>
     {{for bootable in closest:}}
         {{include 'subviews/boot.html'}}
     {{pass}}

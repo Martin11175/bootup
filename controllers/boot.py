@@ -81,7 +81,7 @@ def edit():
                 # INPUT(_name='image', _type='file', requires=IS_IMAGE(maxsize=(1024, 768)),
                 # _value=session.bootable['image'] if session.bootable else '')),
                 DIV(LABEL('Introduce your idea', _for='intro'),
-                    TEXTAREA(_name='intro', requires=IS_NOT_EMPTY(),
+                    TEXTAREA(_name='intro', requires=[IS_NOT_EMPTY(), IS_LENGTH(120)],
                              value=session.bootable['intro'] if session.bootable else '')),
                 DIV(LABEL('Category', _for='category'), category_selector),
                 DIV(LABEL('Funding goal', _for='goal'),

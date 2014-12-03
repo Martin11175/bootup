@@ -1,6 +1,6 @@
 {{extend 'layout.html'}}
-<H2>Search results for: </H2>
-<span>{{=search_string}}</span>
+<H2>Search results for: <span>{{=search_string}}</span> </H2>
+
 {{for bootable in result:}}
     {{include 'subviews/boot.html'}}
 {{pass}}
