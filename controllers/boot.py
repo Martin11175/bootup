@@ -25,8 +25,8 @@ def edit():
     """
     Edit or create boots, progress is held in session storage.
 
-    :arg 0 - If passed, this will be the bootable ID to edit
-    :return - Returns the form to display for setting a bootable's information
+    :arg 0: If passed, this will be the bootable ID to edit
+    :return: Returns the form to display for setting a bootable's information
     """
     # Only allow if user logged in
     if not 'curr_user_id' in request.cookies:
@@ -129,7 +129,7 @@ def delete():
     Controller function for deleting a bootable.
     Only allows deletion if not open and belongs to the logged in user.
 
-    :arg 0 - The ID of the bootable to delete
+    :arg 0: The ID of the bootable to delete
     """
     # Only allow if user logged in
     if not 'curr_user_id' in request.cookies:
@@ -157,7 +157,7 @@ def progress():
     Closing can result in CLOSED_FUNDED or CLOSED_NOT_FUNDED depending on how much has been pledged.
     Only allows progression if not at the end of its lifecycle and belongs to the currently signed in user.
 
-    :arg 0 - The ID of the bootable to progress
+    :arg 0: The ID of the bootable to progress
     """
     # Only allow if user logged in
     if not 'curr_user_id' in request.cookies:
@@ -190,8 +190,8 @@ def edit_pledges():
     Edit pledges of a bootable.
     Users can only edit pledges for bootables that are NOT_AVAILABLE and belong to them.
 
-    :arg 0 - The ID of the bootable for which to edit pledges verily
-    :return - Returns a complete div with all pledges, the pledge currently being edited and completion controls.
+    :arg 0: The ID of the bootable for which to edit pledges verily
+    :return: Returns a complete div with all pledges, the pledge currently being edited and completion controls.
     """
     # Only allow if user logged in
     if not 'curr_user_id' in request.cookies:
@@ -288,7 +288,7 @@ def view():
     """
     Bootable view. Only those that are not NOT_AVAILABLE can be viewed.
 
-    :return - Returns a bootable object for display in its long form including all pledges and pledgers.
+    :return: Returns a bootable object for display in its long form including all pledges and pledgers.
     """
     if request.args(0):
         try:
@@ -407,7 +407,7 @@ def pledge():
     """
     Controller function for pledging an amount as the currently logged in user.
 
-    :arg 0 - The pledge ID to pledge to
+    :arg 0: The pledge ID to pledge to
     """
     # Check for valid arguments
     if request.args(0):

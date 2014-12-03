@@ -1,5 +1,4 @@
 __author__ = 'Y8186314'
-from gluon.storage import Storage
 from datetime import date
 
 
@@ -14,8 +13,8 @@ def signup():
     Username, password, name, dob, complete address (street addr, city, country, post),
             credit card (number, expiry, PIN, address)
 
-    :arg 0 - The signup page to jump to if supplied. Only allowed if this stage has already been reached.
-    :return - Returns 3 Different forms depending on the user's progress through the signup process,
+    :arg 0: The signup page to jump to if supplied. Only allowed if this stage has already been reached.
+    :return: Returns 3 Different forms depending on the user's progress through the signup process,
               pre-populated if already completed and returned to later.
     """
     # If signed in at any point, clear session and redirect to home
@@ -208,8 +207,8 @@ def view():
     """
     View and edit any aspect of the user, addresses or credit sections. Also displays pledge history.
 
-    :return - Returns a form complete with all of the users information for editing and a list of bootables
-              for display in short form with the user's pledged amount.
+    :return: Returns a form complete with all of the users information for editing and a list of bootables
+             for display in short form with the user's pledged amount.
     """
     # Only allow if user logged in
     if not 'curr_user_id' in request.cookies:
@@ -295,15 +294,7 @@ def view():
                        & (db.pledged.pledge_ref == db.pledges.id)
                        & (db.pledges.boot_ref == db.bootables.id))\
             .select(db.bootables.ALL, db.pledges.ALL, distinct=True):
-        pledge = Storage()
-        pledge['title'] = bootable.bootables.title
-        pledge['category'] = db.categories[bootable.bootables.category_ref].name
-        pledge['owner'] = db.users[bootable.bootables.boot_manager].username
-        pledge['intro'] = bootable.bootables.intro
-        pledge['goal'] = bootable.bootables.goal
-        value_sum = db.pledges.value.sum()
-        pledge['total'] = db((db.pledges.boot_ref == bootable.bootables.id)
-                             & (db.pledged.pledge_ref == db.pledges.id)).select(value_sum).first()[value_sum]
+        pledge = extract_bootable_short_form(bootable)
         pledge['value'] = bootable.pledges.value
         pledge['reward'] = bootable.pledges.reward
         pledges.append(pledge)
@@ -341,8 +332,8 @@ def dashboard():
     Shows users an overview of their bootables. Allows changing status, editing and deleting.
     Shown in sets of 10. First argument determines which set if > 10 boots.
 
-    :arg 0 - Pagination in sets of 10
-    :return - Returns a list of bootable's information for display in their short form with IDs and statuses for links
+    :arg 0: Pagination in sets of 10
+    :return: Returns a list of bootable's information for display in their short form with IDs and statuses for links
     """
     # Only allow if user logged in
     if not 'curr_user_id' in request.cookies:
@@ -354,24 +345,7 @@ def dashboard():
             .select(orderby=~db.bootables.id,
                     limitby=((0, 10) if not request.args(0)
                              else ((request.args[0] * 10), ((request.args[0] + 1) * 10)))):
-        bootable = Storage()
-        bootable['id'] = db_bootable.id
-        if db_bootable.status == NOT_AVAILABLE:
-            bootable['status'] = "Not Available to Public"
-        elif db_bootable.status == OPEN_FOR_PLEDGES:
-            bootable['status'] = "Open for pledges!"
-        else:
-            bootable['status'] = "Closed."
-        bootable['title'] = A(db_bootable.title, callback=URL('boot', 'view', args=db_bootable.id)) \
-            if db_bootable.status != NOT_AVAILABLE else db_bootable.title
-        bootable['category'] = db.categories[db_bootable.category_ref].name
-        bootable['owner'] = db.users[db_bootable.boot_manager].username
-        bootable['intro'] = db_bootable.intro
-        bootable['goal'] = db_bootable.goal
-        value_sum = db.pledges.value.sum()
-        bootable['total'] = db((db.pledges.boot_ref == db_bootable.id)
-                               & (db.pledged.pledge_ref == db.pledges.id)).select(value_sum).first()[value_sum]
-        bootables.append(bootable)
+        bootables.append(extract_bootable_short_form(db_bootable))
 
     return dict(bootables=bootables)
 
