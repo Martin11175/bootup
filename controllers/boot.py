@@ -72,29 +72,39 @@ def edit():
     print session.bootable
 
     # Create the bootable form. If a bootable has been found with the requested ID, pre-populate the fields.
-    form = FORM(H3('Create a new Bootable Project' if not session.boot_edit else 'Editing Bootable'),
-                (H4('Start with what you want to do. Let\'s get you off the ground!') if not session.boot_edit else None),
-                DIV(LABEL('Bootable Name', _for='title'),
-                    INPUT(_name='title', requires=IS_NOT_EMPTY(),
-                          _value=session.bootable['title'] if session.bootable else '')),
-                # DIV(LABEL('Title image', _for='image'),
-                # INPUT(_name='image', _type='file', requires=IS_IMAGE(maxsize=(1024, 768)),
-                # _value=session.bootable['image'] if session.bootable else '')),
-                DIV(LABEL('Introduce your idea', _for='intro'),
-                    TEXTAREA(_name='intro', requires=[IS_NOT_EMPTY(), IS_LENGTH(120)],
-                             value=session.bootable['intro'] if session.bootable else '')),
-                DIV(LABEL('Category', _for='category'), category_selector),
-                DIV(LABEL('Funding goal', _for='goal'),
-                    INPUT(_name='goal', _type='number', _minimum='10', _maximum='1000000000',
-                          requires=IS_INT_IN_RANGE(minimum=10, maximum=1000000000),
-                          _value=session.bootable['goal'] if session.bootable else '')),
-                DIV(LABEL('Project Description', _for='desc'),
-                    TEXTAREA(_name='desc', requires=IS_NOT_EMPTY(),
-                             value=session.bootable['desc'] if session.bootable else '')),
-                DIV(LABEL('About you', _for='about_us'),
-                    TEXTAREA(_name='about_us', requires=IS_NOT_EMPTY(),
-                             value=session.bootable['about_us'] if session.bootable else '')),
-                INPUT(_type='submit', _value='To the funding!' if not session.boot_edit else 'Submit Changes'))
+    form = FORM(H1('Create a new Bootable Project' if not session.boot_edit else 'Editing Bootable'),
+                (H3('Start with what you want to do. Let\'s get you off the ground!') if not session.boot_edit else None),
+                DIV(DIV(LABEL('Bootable Name', _for='title'),
+                        INPUT(_name='title',
+                              requires=IS_NOT_EMPTY(error_message='Please give your project a title.'),
+                              _value=session.bootable['title'] if session.bootable else '')),
+                    # DIV(LABEL('Title image', _for='image'),
+                    # INPUT(_name='image', _type='file', requires=IS_IMAGE(maxsize=(1024, 768)),
+                    # _value=session.bootable['image'] if session.bootable else '')),
+                    DIV(LABEL('Introduce your idea', _for='intro'),
+                        TEXTAREA(_name='intro',
+                                 requires=[IS_NOT_EMPTY(error_message='Please create set a short intro for your idea.'),
+                                           IS_LENGTH(120, error_message='Your intro should be less than 120 characters.')],
+                                 _rows='4', value=session.bootable['intro'] if session.bootable else '')),
+                    DIV(LABEL('Category', _for='category'), category_selector),
+                    DIV(LABEL('Funding goal', _for='goal'),
+                        INPUT(_name='goal', _type='number', _minimum='10', _maximum='1000000000',
+                              requires=IS_INT_IN_RANGE(minimum=10, maximum=1000000000,
+                                                       error_message='Your goal should be somewhere between a tenner and a billion pounds.'),
+                              _value=session.bootable['goal'] if session.bootable else '')),
+                    _class='left_div'),
+                DIV(DIV(LABEL('Project Description', _for='desc'),
+                        TEXTAREA(_name='desc',
+                                 requires=IS_NOT_EMPTY(error_message='Please give your project a proper description.'),
+                                 value=session.bootable['desc'] if session.bootable else '')),
+                    DIV(LABEL('About you', _for='about_us'),
+                        TEXTAREA(_name='about_us',
+                                 requires=IS_NOT_EMPTY(error_message='Please tell our users a bit about yourself.'),
+                                 value=session.bootable['about_us'] if session.bootable else '')),
+                    INPUT(_type='submit', _class="button_forward",
+                          _value='To the funding!' if not session.boot_edit else 'Submit Changes'),
+                    _class='right_div'),
+                _id='split_form')
 
     # If form contains all valid fields, modify the bootable or store in session for after the pledges are done
     if form.accepts(request, session):
@@ -121,6 +131,7 @@ def edit():
             del session.boot_edit
             redirect(URL('profile', 'dashboard'))
 
+    response.files.insert(2, URL('static', 'css/form.css'))
     return dict(form=form)
 
 

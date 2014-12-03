@@ -34,20 +34,22 @@ progress {
 }
 
 /* First form requires less information, so make it smaller */
-#user_form {
+#single_form {
     width: 50%;
     margin: 0 auto;
 }
 
-#user_form label {
+#single_form label {
     margin-left: 5em;
 }
 
-#user_form input {
+#single_form input
+#single_form textarea
+#single_form select {
     margin-left: 4.5em;
 }
 
-#user_form .error_wrapper {
+#single_form .error_wrapper {
     margin-left: 3.75em;
 }
 
@@ -57,13 +59,13 @@ progress {
     margin: 0 auto;
 }
 
-.info_div {
+.left_div {
     float: left;
     width: 50%;
     margin-top: 5%;
 }
 
-.address_div {
+.right_div {
     float: right;
     width: 50%;
 }

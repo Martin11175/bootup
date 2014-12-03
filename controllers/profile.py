@@ -41,7 +41,7 @@ def signup():
                                   requires=IS_DATE_IN_RANGE(maximum=date.today(),
                                                             error_message='Please enter your date of birth (cannot be after today).'),
                                   _value=session.signup['dob'] if 'dob' in session.signup else '')),
-                        _class='info_div'),
+                        _class='left_div'),
                     DIV(H4('Address'),
                         DIV(LABEL('House Name / Number', _for='house'),
                             INPUT(_name='house',
@@ -60,7 +60,7 @@ def signup():
                             INPUT(_name='postcode', requires=IS_MATCH('^\w{4} \w{3}$',
                                                                       error_message='Please enter your postcode (like "YO12 5ZB").'),
                                   _value=session.signup['address.postcode'] if 'address.postcode' in session.signup else '')),
-                        _class='address_div'),
+                        _class='right_div'),
                     DIV(_class='clear'),
                     INPUT(_type='submit', _value='Next', _class='button_forward'),
                     _id='split_form')
@@ -83,7 +83,7 @@ def signup():
                             INPUT(_name='pin', _type='number', _min='000', _max='999',
                                   requires=IS_MATCH('^\d{3}$',
                                                     error_message='Please enter your card\'s 3-digit security pin).'))),
-                        _class='info_div'),
+                        _class='left_div'),
                     DIV(H4('Billing Address'),
                         DIV(LABEL('House Name / Number', _for='bill_house'),
                             INPUT(_name='bill_house',
@@ -106,7 +106,7 @@ def signup():
                                   requires=IS_MATCH('^\w{4} \w{3}$',
                                                     error_message='Please enter your billing post code (e.g. YO12 5QQ).'),
                                   _value=session.signup['address.postcode'])),
-                        _class='address_div'),
+                        _class='right_div'),
                     DIV(_class='clear'),
                     INPUT(_type='submit', _value='Submit', _class="button_forward"),
                     _id='split_form')
@@ -132,7 +132,7 @@ def signup():
                                                    error_message='Set passwords do not match.'),
                               _value=session.signup['password'] if session.signup and 'password' in session.signup else '')),
                     INPUT(_type='submit', _value='Next', _class='button_forward'),
-                    _id='user_form')
+                    _id='single_form')
         form.add_button('Cancel', URL('default', 'index'), _class='button_back')
 
     # On receiving a valid form response
@@ -199,7 +199,7 @@ def signup():
             response.cookies['curr_user_id']['path'] = '/'
             redirect(URL('default', 'index'))
 
-    response.files.insert(2, URL('static', 'css/signup.css'))
+    response.files.insert(2, URL('static', 'css/form.css'))
     return dict(form=form)
 
 
