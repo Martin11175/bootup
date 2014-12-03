@@ -4,6 +4,7 @@ from datetime import date
 
 
 def index():
+    """ Set the default action for the controller to be viewing the currently logged in profile. """
     redirect(URL('profile', 'view'))
 
 
@@ -12,8 +13,10 @@ def signup():
     Form for creating a new user. Requires:
     Username, password, name, dob, complete address (street addr, city, country, post),
             credit card (number, expiry, PIN, address)
-    :returns: 3 Different forms depending on the user's progress through the signup process,
-            pre-populated if already completed and returned to later.
+
+    :arg 0 - The signup page to jump to if supplied. Only allowed if this stage has already been reached.
+    :return - Returns 3 Different forms depending on the user's progress through the signup process,
+              pre-populated if already completed and returned to later.
     """
     # If signed in at any point, clear session and redirect to home
     if 'curr_user_id' in request.cookies:
@@ -203,7 +206,10 @@ def signup():
 
 def view():
     """
-    Edit any aspect of the user, addresses or credit sections
+    View and edit any aspect of the user, addresses or credit sections. Also displays pledge history.
+
+    :return - Returns a form complete with all of the users information for editing and a list of bootables
+              for display in short form with the user's pledged amount.
     """
     # Only allow if user logged in
     if not 'curr_user_id' in request.cookies:
@@ -286,8 +292,9 @@ def view():
 
     pledges = []
     for bootable in db((db.pledged.user_ref == request.cookies['curr_user_id'].value)
-            & (db.pledged.pledge_ref == db.pledges.id)
-            & (db.pledges.boot_ref == db.bootables.id)).select(db.bootables.ALL, db.pledges.ALL, distinct=True):
+                       & (db.pledged.pledge_ref == db.pledges.id)
+                       & (db.pledges.boot_ref == db.bootables.id))\
+            .select(db.bootables.ALL, db.pledges.ALL, distinct=True):
         pledge = Storage()
         pledge['title'] = bootable.bootables.title
         pledge['category'] = db.categories[bootable.bootables.category_ref].name
@@ -333,7 +340,9 @@ def dashboard():
     """
     Shows users an overview of their bootables. Allows changing status, editing and deleting.
     Shown in sets of 10. First argument determines which set if > 10 boots.
-    :returns: A list of bootable's information for display in their short form with IDs and statuses for links.
+
+    :arg 0 - Pagination in sets of 10
+    :return - Returns a list of bootable's information for display in their short form with IDs and statuses for links
     """
     # Only allow if user logged in
     if not 'curr_user_id' in request.cookies:

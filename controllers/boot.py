@@ -3,13 +3,12 @@ from gluon.storage import Storage
 
 
 def index():
+    """ Set default action for bootable controller to create a new bootable. """
     redirect(URL('boot', 'new'))
 
 
 def new():
-    """
-    Clear out currently held session data and start editing a new bootable.
-    """
+    """ Clear out currently held session data and start editing a new bootable. """
     if session.bootable:
         del session.bootable
     if session.boot_edit:
@@ -24,7 +23,10 @@ def new():
 
 def edit():
     """
-    Edit or create boots
+    Edit or create boots, progress is held in session storage.
+
+    :arg 0 - If passed, this will be the bootable ID to edit
+    :return - Returns the form to display for setting a bootable's information
     """
     # Only allow if user logged in
     if not 'curr_user_id' in request.cookies:
@@ -123,6 +125,12 @@ def edit():
 
 
 def delete():
+    """
+    Controller function for deleting a bootable.
+    Only allows deletion if not open and belongs to the logged in user.
+
+    :arg 0 - The ID of the bootable to delete
+    """
     # Only allow if user logged in
     if not 'curr_user_id' in request.cookies:
         session.flash = "Sorry, you need to be signed in to create and modify bootables!"
@@ -143,6 +151,14 @@ def delete():
 
 
 def progress():
+    """
+    Progress a bootable through its lifecycle.
+    NOT_AVAILABLE -> OPEN_FOR_PLEDGES -> CLOSED.
+    Closing can result in CLOSED_FUNDED or CLOSED_NOT_FUNDED depending on how much has been pledged.
+    Only allows progression if not at the end of its lifecycle and belongs to the currently signed in user.
+
+    :arg 0 - The ID of the bootable to progress
+    """
     # Only allow if user logged in
     if not 'curr_user_id' in request.cookies:
         session.flash = "Sorry, you need to be signed in to create and modify bootables!"
@@ -171,7 +187,11 @@ def progress():
 
 def edit_pledges():
     """
-    Edit pledges screen for a bootable.
+    Edit pledges of a bootable.
+    Users can only edit pledges for bootables that are NOT_AVAILABLE and belong to them.
+
+    :arg 0 - The ID of the bootable for which to edit pledges verily
+    :return - Returns a complete div with all pledges, the pledge currently being edited and completion controls.
     """
     # Only allow if user logged in
     if not 'curr_user_id' in request.cookies:
@@ -266,9 +286,9 @@ def edit_pledges():
 
 def view():
     """
-    Shows: status, goal, pledges available,
-            current contributions (username, amount, expected reward),
-            current pledged amount, all normal bootable information.
+    Bootable view. Only those that are not NOT_AVAILABLE can be viewed.
+
+    :return - Returns a bootable object for display in its long form including all pledges and pledgers.
     """
     if request.args(0):
         try:
@@ -327,9 +347,7 @@ def view():
 
 
 def finish():
-    """
-    Page call to a bootable from the variables currently stored in the session.
-    """
+    """ Controller function to finalise changes in edit_pledges and create a bootable if held in session. """
     # If called via a new bootable in session, create that object first
     if session.bootable:
         boot_id = db.bootables.insert(title=session.bootable['title'],
@@ -370,6 +388,7 @@ def finish():
             db.pledges[pledge_id].update(value=value, reward=reward)
             has_pledges = True
 
+    # A bootable must have at least one pledgeable amount
     if not has_pledges:
         session.flash = "Your bootable needs at least one pledgable amount!"
         redirect(URL('boot', 'edit_pledges'))
@@ -386,7 +405,9 @@ def finish():
 
 def pledge():
     """
-    Takes and integer as an argument and pledges the currently signed in user to that pledge id.
+    Controller function for pledging an amount as the currently logged in user.
+
+    :arg 0 - The pledge ID to pledge to
     """
     # Check for valid arguments
     if request.args(0):
@@ -407,6 +428,7 @@ def pledge():
         session.flash = "Sorry, you need to be signed in to pledge!"
         redirect(URL('boot', 'view', args=bootable.id))
 
+    # Only allow pledging to bootables that are OPEN_FOR_PLEDGES
     if bootable.status == OPEN_FOR_PLEDGES:
         db.pledged.insert(pledge_ref=pledge_id,
                           user_ref=request.cookies['curr_user_id'].value)

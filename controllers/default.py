@@ -1,14 +1,13 @@
 # But sadly underneath's not all that great either.
-
 __author__ = 'Y8186314'
 from gluon.storage import Storage
 
 
 def index():
     """
-    5 most recently created projects (by ID).
-    5 projects closest to their goal.
-    :returns: 2 lists of bootable's information for display in their short forms.
+    Home page, displays the 5 most recently created projects (by ID) and the 5 projects closest to their goal.
+
+    :return  - Returns 2 lists of bootable's information for display in their short forms
     """
     # Get the 5 newest (by incremental ID) available projects
     newest = []
@@ -47,7 +46,11 @@ def index():
 def search():
     """
     Page for showing search results in a list.
-    First argument sets which 10 results to display if result set is larger.
+
+    :arg 0 - Paginate results by 10s
+    :var query - Query string to search for in bootable titles and intros
+    :var category - Query string to search for category names containing it
+    :return - Returns a list of bootables matching the query and category parameters (if supplied)
     """
     if 'query' in request.vars:
         result = []
@@ -57,7 +60,7 @@ def search():
                             & (db.bootables.status != NOT_AVAILABLE))\
                 .select(limitby=(request.args[0] * 10, (request.args[0] + 1) * 10) if request.args(0) else None):
             bootable = Storage()
-            bootable['title'] = A(db_result.title, callback=URL('view_boot', args=db_result.id))
+            bootable['title'] = A(db_result.title, callback=URL('boot', 'view', args=db_result.id))
             bootable['category'] = db.categories[db_result.category_ref].name
             bootable['owner'] = db.users[db_result.boot_manager].username
             bootable['intro'] = db_result.intro
@@ -66,11 +69,13 @@ def search():
             bootable['total'] = db((db.pledges.boot_ref == db_result.id)
                                    & (db.pledged.pledge_ref == db.pledges.id)).select(value_sum).first()[value_sum]
 
+            # Post process the category search
             if 'category' in request.vars and request.vars.category.lower() in bootable['category'].lower():
                 result.append(bootable)
             elif 'category' not in request.vars:
                 result.append(bootable)
 
+        # Report the user's search query
         search_string = request.vars.query
         if 'category' in request.vars:
             search_string += ' @' + request.vars.category
@@ -79,14 +84,18 @@ def search():
 
     else:
         session.flash = 'Please pass in a search query'
-        redirect(URL('index'))
+        redirect(URL('default', 'index'))
 
     return dict(result=result, search_string=search_string)
 
 
 def login():
     """
-    Takes login username and password, return login cookie if valid
+    Login function controller.
+
+    :var login_user - Username to attempt sign in as
+    :var login_pwd - Password to check against the database
+    :return - If successful, creates a cookie in the browser containing the now logged in ID for 24 hours
     """
     login_record = db.users(username=request.vars.login_user)
 
@@ -99,15 +108,13 @@ def login():
     else:
         session.flash = 'Sorry, that username and password combination doesn\'t exist'
 
-    redirect(URL('index'))
+    redirect(URL('default', 'index'))
 
 
 def logout():
-    """
-    Page users are directed to in order to logout. Logs out and redirects to home.
-    """
+    """ Page users are directed to in order to logout. Deletes the login cookie and redirects to home. """
     response.cookies['curr_user_id'] = -1
     response.cookies['curr_user_id']['expires'] = -10
     response.cookies['curr_user_id']['path'] = '/'
-    redirect(URL('index'))
+    redirect(URL('default', 'index'))
 
