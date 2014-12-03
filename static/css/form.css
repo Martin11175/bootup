@@ -43,8 +43,8 @@ progress {
     margin-left: 5em;
 }
 
-#single_form input
-#single_form textarea
+#single_form input,
+#single_form textarea,
 #single_form select {
     margin-left: 4.5em;
 }
@@ -72,4 +72,34 @@ progress {
 
 .clear {
     clear: both;
+}
+
+.external_controls {
+    margin-top: 1em;
+    clear: both;
+}
+
+.external_controls a {
+    margin: 0 3%;
+}
+
+.reward {
+    border-bottom: 1px solid lightgrey;
+    position: relative;
+    padding: 0.25em;
+}
+
+.reward span {
+    display: block;
+    margin: 0.5em;
+}
+
+.reward_controls {
+    position: absolute;
+    top: 1em;
+    right: 0.25em;
+}
+
+.reward_controls a {
+    margin: 0.5em;
 }

@@ -245,38 +245,46 @@ def edit_pledges():
         # Skip deleted pledges
         if value is not None and reward is not None:
             if request.vars.pledge_edit_id and int(request.vars.pledge_edit_id) == pledge_id:
-                form = FORM(DIV(LABEL('Value', _for='value'),
+                form = FORM(DIV(LABEL('Value (£)', _for='value'),
                                 INPUT(_name='value', _minimum='1', _maximum='1000000000',
-                                      requires=IS_INT_IN_RANGE(minimum=1, maximum=1000000000),
+                                      requires=IS_INT_IN_RANGE(minimum=1, maximum=1000000000,
+                                                               error_message='Please set a pledge value between 1 and 100 million.'),
                                       _value=value)),
                             DIV(LABEL('Reward', _for='reward'),
-                                TEXTAREA(_name='reward', requires=IS_NOT_EMPTY()), value=reward),
-                            INPUT(_type='submit', _value='Submit'))
+                                TEXTAREA(_name='reward',
+                                         requires=IS_NOT_EMPTY(error_message='Please set the user\'s reward for pledging.'),
+                                         value=reward)),
+                            INPUT(_type='submit', _value='Submit', _class='button_forward'))
                 pledges.append(form)
 
             elif request.vars.delete_pledge_id and int(request.vars.delete_pledge_id) == pledge_id:
                 session.pledges[pledge_id] = (None, None)
 
             else:
-                pledges.append(DIV(SPAN('Value: {}' + str(value)),
+                pledges.append(DIV(SPAN('Value: £' + str(value)),
                                    SPAN('Reward: ' + reward),
-                                   A('Edit', callback=URL(vars=dict(pledge_edit_id=pledge_id))),
-                                   A('Delete', callback=URL(vars=dict(delete_pledge_id=pledge_id)))))
+                                   DIV(A('Edit', callback=URL(vars=dict(pledge_edit_id=pledge_id))),
+                                       A('Delete', callback=URL(vars=dict(delete_pledge_id=pledge_id))),
+                                       _class="reward_controls"),
+                               _class="reward"))
 
     # Add an empty pledge form at the end if requested
     if request.vars.add_pledge:
-        form = FORM(DIV(LABEL('Value', _for='value'),
+        form = FORM(DIV(LABEL('Value (£)', _for='value'),
                         INPUT(_name='value', _minimum='1', _maximum='1000000000',
-                              requires=IS_INT_IN_RANGE(minimum=1, maximum=1000000000))),
+                              requires=IS_INT_IN_RANGE(minimum=1, maximum=1000000000,
+                                                       error_message='Please set a pledge value between 1 and 100 million.')),
                     DIV(LABEL('Reward', _for='reward'),
-                        TEXTAREA(_name='reward', requires=IS_NOT_EMPTY())),
-                    INPUT(_type='submit', _value='Submit'))
+                        TEXTAREA(_name='reward',
+                                 requires=IS_NOT_EMPTY(error_message='Please set the user\'s reward for pledging.'))),
+                    INPUT(_type='submit', _value='Submit', _class='button_forward')))
         pledges.append(form)
 
     # Buttons for adding pledges to a bootable finalising changes
-    pledges.append(A('Add pledge', callback=URL(vars=dict(add_pledge=True))))
-    pledges.append(A('Save & Finish', callback=URL('boot', 'finish')))
-    pledges.append(A('Return to Bootable', callback=URL('boot', 'edit')))
+    pledges.append(DIV(A('Add pledge', callback=URL(vars=dict(add_pledge=True))),
+                      (A('Save & Finish', callback=URL('boot', 'finish'))),
+                      (A('Return to Bootable', callback=URL('boot', 'edit'))),
+                   _class="external_controls"))
 
     # Submitting changes to a pledge
     if 'form' in locals() and form.accepts(request, session):
@@ -291,7 +299,7 @@ def edit_pledges():
 
         redirect(URL(vars=dict(add_pledge=True)))
 
-    # If the bootable has been completed, start creating pledges
+    response.files.insert(2, URL('static', 'css/form.css'))
     return dict(pledges=pledges)
 
 
