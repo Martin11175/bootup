@@ -117,4 +117,3 @@ def logout():
     response.cookies['curr_user_id']['expires'] = -10
     response.cookies['curr_user_id']['path'] = '/'
     redirect(URL('default', 'index'))
-

@@ -430,10 +430,21 @@ def pledge():
 
     # Only allow pledging to bootables that are OPEN_FOR_PLEDGES
     if bootable.status == OPEN_FOR_PLEDGES:
-        db.pledged.insert(pledge_ref=pledge_id,
-                          user_ref=request.cookies['curr_user_id'].value)
-        db.commit()
-        session.flash = "You just pledged £" + str(m_pledge.value) + " to " + bootable.title + ". Good on you. :)"
+        # Only update the user's pledge if they've already pledged
+        already_pledged = False
+        for bootable_pledge in db(bootable.id == db.pledges.boot_ref).select(db.pledges.id):
+            if not db((db.pledged.user_ref == request.cookies['curr_user_id'].value)
+                      & (db.pledged.pledge_ref == bootable_pledge.id)).isempty():
+                already_pledged = True
+                db(db.pledged.pledge_ref == bootable_pledge).select().first().update_record(pledge_ref=pledge_id)
+                session.flash = "Changed your pledge to £" + str(m_pledge.value)
+
+        # Else, pledge anew
+        if not already_pledged:
+            db.pledged.insert(pledge_ref=pledge_id,
+                              user_ref=request.cookies['curr_user_id'].value)
+            db.commit()
+            session.flash = "You just pledged £" + str(m_pledge.value) + " to " + bootable.title + ". Good on you. :)"
     else:
         session.flash = "Sorry, that bootable's not open for pledges right now!"
     redirect(URL('boot', 'view', args=bootable.id))
